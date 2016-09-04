@@ -30,7 +30,7 @@ uint8_t ppmDump   = 0;
 uint32_t lastDump = 0;
 #endif
 
-#define MULTI_HEADER 0x5
+#define MULTI_HEADER 0x55
 #define MULTI_PROTOCOL_FRSKY 0x3
 
 uint8_t frameIndex;
@@ -57,12 +57,25 @@ void setup() {
     
 }
 uint8_t mode, currmode = 0;
+uint8_t centerdel = 1;
 
 
 
 void loop() {
   
-currmode = (millis()/1000) % (0x3E + 1) + SERIAL_8E2 ;
+//currmode = (millis()/1000) % (0x3E + 1) + SERIAL_8E2 ;
+
+
+
+	static const unsigned long REFRESH_INTERVAL = 10000; // ms
+	static unsigned long lastRefreshTime = 0;
+	
+	if(millis() - lastRefreshTime >= REFRESH_INTERVAL)
+	{
+		lastRefreshTime += REFRESH_INTERVAL;
+                
+        //        SoftSerial.setCentering(centerdel++);
+	}
 
   if (currmode != mode) {
       
@@ -90,7 +103,7 @@ currmode = (millis()/1000) % (0x3E + 1) + SERIAL_8E2 ;
   }*/
   
   mode = currmode;
-  SoftSerial.begin(100000,mode);
+  //SoftSerial.begin(100000,mode);
   }
 
 
@@ -162,28 +175,34 @@ static inline void processMULTI(uint8_t c)
   if (frameIndex == 0) {
     if (c == MULTI_HEADER) {
       frameIndex++;
-      Serial.print("Sync");
+      //Serial.println("Sync");
     }
-    /*Serial.print(" ");
-    Serial.print(c, HEX);*/
-  } else if (frameIndex == 1) {
-    Serial.print(" ");
+    else {
+//Serial.println("S");
+    Serial.print(" S:");
     Serial.print(c, HEX);
-    Serial.print(" ");
-    if ((c & 0x0f) == MULTI_PROTOCOL_FRSKY || c == 0x0F) {
+    }
+    
+  } else if (frameIndex == 1) {
+    /*Serial.print(" ");
+    Serial.print(c, HEX);
+    Serial.print(" ");*/
+    if ((c & 0x1F) == MULTI_PROTOCOL_FRSKY) {
       frameIndex++;
-      Serial.print(" FRSky");
+      //Serial.print(" FRSky");
     } else {
       frameIndex = 0;
+      Serial.print(" F ");
+    Serial.print(c, HEX);
     }
   } else if (frameIndex == 2) {
     frameIndex++;
   } else if (frameIndex == 3) {
     frameIndex++;
-  } else if (frameIndex <= 25) {
+  } else if (frameIndex <= 26) {
     ppmWork.bytes[(frameIndex++) - 4] = c;
     
-    if (frameIndex == 25) {
+    if (frameIndex == 26) {
       if ((ppmWork.sbus.status & 0x08) == 0) {
         uint8_t set;
         for (set = 0; set < 2; set++) {

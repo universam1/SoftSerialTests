@@ -150,15 +150,22 @@ void ExtSoftSerial::recv()
     // cause problems at higher baudrates.
     setRxIntMsk(false);
 
-    // Wait approximately 1/2 of a bit width to "center" the sample
+// Wait approximately 1/2 of a bit width to "center" the sample
     tunedDelay(_rx_delay_centering);
-    DebugPulse(_DEBUG_PIN2, 1);
+DebugPulse(_DEBUG_PIN2, 1);
+
+    //Load the config values
+    uint8_t num_bits = _num_bits;
+    uint8_t frame_num_bits = _frame_num_bits;
+    //uint8_t center_del = _rx_delay_centering;
+    // Currently ignored, since no error signaling implemented
+    //uint8_t parity = _parity; 
 
     // Read each of the 8 bits
-    for (uint8_t i = 0; i < _base_num_bits; i++)
+    for (uint8_t i = 0; i < frame_num_bits; i++)
     {
       tunedDelay(_rx_delay_intrabit);
-	  if (i < _num_bits) {
+	  if (i < num_bits) {
 		d >>= 1;
 		DebugPulse(_DEBUG_PIN2, 1);
 		if (rx_pin_read())
@@ -190,7 +197,7 @@ void ExtSoftSerial::recv()
     // Re-enable interrupts when we're sure to be inside the stop bit
     setRxIntMsk(true);
 
-  }
+}
 
 #if GCC_VERSION < 40302
 // Work-around for avr-gcc 4.3.0 OSX version bug
@@ -207,6 +214,7 @@ void ExtSoftSerial::recv()
     ::);
 #endif
 }
+
 
 uint8_t ExtSoftSerial::rx_pin_read()
 {
@@ -268,6 +276,13 @@ ExtSoftSerial::~ExtSoftSerial()
   end();
 }
 
+void ExtSoftSerial::setCentering(uint8_t delay)
+{
+uint8_t _rx_delay_centering = delay;
+Serial.print("center delay:");
+Serial.println(delay);
+}
+
 void ExtSoftSerial::setTX(uint8_t tx)
 {
   // First write, then set output. If we do this the other way around,
@@ -285,14 +300,14 @@ void ExtSoftSerial::setRX(uint8_t rx)
 {
   pinMode(rx, INPUT);
   if (!_inverse_logic)
-    digitalWrite(rx, HIGH);  // pullup for normal logic!
+    //digitalWrite(rx, HIGH);  // pullup for normal logic!
   _receivePin = rx;
   _receiveBitMask = digitalPinToBitMask(rx);
   uint8_t port = digitalPinToPort(rx);
   _receivePortRegister = portInputRegister(port);
 }
 
-uint16_t ExtSoftSerial::subtract_cap(uint16_t num, uint16_t sub) {
+inline uint16_t ExtSoftSerial::subtract_cap(uint16_t num, uint16_t sub) {
   if (num > sub)
     return num - sub;
   else
@@ -365,16 +380,17 @@ void ExtSoftSerial::begin(long speed, uint8_t mode)
     _pcint_maskreg = digitalPinToPCMSK(_receivePin);
     _pcint_maskvalue = _BV(digitalPinToPCMSKbit(_receivePin));
 
-	_num_bits = ((mode >> 1) & 0x03) + 5;
-	_extra_stop_bits = (mode >> 3) & 0x01;
+_num_bits = ((mode >> 1) & 0x03) + 5;
+uint8_t extra_stop_bits = (mode >> 3) & 0x01;
 	_parity = (mode >> 4) & 0x02;
-	_base_num_bits = _num_bits + ((_parity == 0) ? 0 : 1) + _extra_stop_bits;
+	_frame_num_bits = _num_bits + ((_parity == 0) ? 0 : 1) + extra_stop_bits;
 
 Serial.print("\nMode:"); Serial.print(mode, HEX);
+Serial.print(" delay:"); Serial.print(_rx_delay_centering);
     Serial.print(" N:"); Serial.print(_num_bits);
-    Serial.print(" S:"); Serial.print(_extra_stop_bits);
+    Serial.print(" S:"); Serial.print(extra_stop_bits);
     Serial.print(" P:"); Serial.print(_parity);
-    Serial.print(" B:"); Serial.println(_base_num_bits);
+    Serial.print(" B:"); Serial.println(_frame_num_bits);
 
     tunedDelay(_tx_delay); // if we were low this establishes the end
   }

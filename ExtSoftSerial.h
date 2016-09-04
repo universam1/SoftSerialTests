@@ -68,10 +68,9 @@ private:
   uint16_t _buffer_overflow:1;
   uint16_t _inverse_logic:1;
 
-  uint8_t _num_bits:4;
+uint8_t _num_bits:4;
   uint8_t _parity:2;
-  uint8_t _extra_stop_bits:1;
-  uint8_t _base_num_bits:4;
+  uint8_t _frame_num_bits:4;
 
   // static data
   static uint8_t _receive_buffer[_SS_MAX_RX_BUFF]; 
@@ -104,6 +103,7 @@ public:
   bool stopListening();
   bool overflow() { bool ret = _buffer_overflow; if (ret) _buffer_overflow = false; return ret; }
   int peek();
+  void setCentering(uint8_t delay);
 
   virtual size_t write(uint8_t byte);
   virtual int read();
