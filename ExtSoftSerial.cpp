@@ -191,8 +191,8 @@ DebugPulse(_DEBUG_PIN2, 1);
     }
 
     // skip the stop bit
-    tunedDelay(_rx_delay_stopbit);
-    //tunedDelay(1);
+    //tunedDelay(_rx_delay_stopbit);
+    tunedDelay(30);
     DebugPulse(_DEBUG_PIN1, 1);
 
     // Re-enable interrupts when we're sure to be inside the stop bit

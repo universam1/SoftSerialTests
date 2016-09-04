@@ -52,7 +52,7 @@ void setup() {
   delay(1000);
     SoftSerial.begin(100000, SERIAL_8E1);
   delay(1000);*/
-    SoftSerial.begin(100000, SERIAL_8E2);
+    SoftSerial.begin(100000, SERIAL_8E1);
   //delay(1000);
     
 }
