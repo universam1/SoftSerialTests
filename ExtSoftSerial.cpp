@@ -143,8 +143,8 @@ void ExtSoftSerial::recv()
 
   // If RX line is high, then we don't see any start bit
   // so interrupt is probably not for us
-  if (_inverse_logic ? rx_pin_read() : !rx_pin_read())
-  {
+/*  if (_inverse_logic ? rx_pin_read() : !rx_pin_read())
+  {*/
     // Disable further interrupts during reception, this prevents
     // triggering another interrupt directly after we return, which can
     // cause problems at higher baudrates.
@@ -192,12 +192,13 @@ DebugPulse(_DEBUG_PIN2, 1);
 
     // skip the stop bit
     tunedDelay(_rx_delay_stopbit);
+    //tunedDelay(1);
     DebugPulse(_DEBUG_PIN1, 1);
 
     // Re-enable interrupts when we're sure to be inside the stop bit
     setRxIntMsk(true);
 
-}
+//}
 
 #if GCC_VERSION < 40302
 // Work-around for avr-gcc 4.3.0 OSX version bug
@@ -300,7 +301,7 @@ void ExtSoftSerial::setRX(uint8_t rx)
 {
   pinMode(rx, INPUT);
   if (!_inverse_logic)
-    //digitalWrite(rx, HIGH);  // pullup for normal logic!
+    digitalWrite(rx, HIGH);  // pullup for normal logic!
   _receivePin = rx;
   _receiveBitMask = digitalPinToBitMask(rx);
   uint8_t port = digitalPinToPort(rx);
@@ -386,7 +387,7 @@ uint8_t extra_stop_bits = (mode >> 3) & 0x01;
 	_frame_num_bits = _num_bits + ((_parity == 0) ? 0 : 1) + extra_stop_bits;
 
 Serial.print("\nMode:"); Serial.print(mode, HEX);
-Serial.print(" delay:"); Serial.print(_rx_delay_centering);
+Serial.print(" _rx_delay_stopbit:"); Serial.print(_rx_delay_stopbit);
     Serial.print(" N:"); Serial.print(_num_bits);
     Serial.print(" S:"); Serial.print(extra_stop_bits);
     Serial.print(" P:"); Serial.print(_parity);

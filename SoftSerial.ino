@@ -108,6 +108,7 @@ void loop() {
 
 
   if (SoftSerial.available()) {
+    if (SoftSerial.overflow()) Serial.println("overflow");
     uint8_t inByte = SoftSerial.read();
     processMULTI(inByte);
     //Serial.write(inByte);
@@ -179,8 +180,8 @@ static inline void processMULTI(uint8_t c)
     }
     else {
 //Serial.println("S");
-    Serial.print(" S:");
-    Serial.print(c, HEX);
+  /*  Serial.print(" S:");
+    Serial.print(c, HEX)*/;
     }
     
   } else if (frameIndex == 1) {
@@ -192,8 +193,8 @@ static inline void processMULTI(uint8_t c)
       //Serial.print(" FRSky");
     } else {
       frameIndex = 0;
-      Serial.print(" F ");
-    Serial.print(c, HEX);
+/*      Serial.print(" F ");
+    Serial.print(c, HEX);*/
     }
   } else if (frameIndex == 2) {
     frameIndex++;
@@ -206,14 +207,23 @@ static inline void processMULTI(uint8_t c)
       if ((ppmWork.sbus.status & 0x08) == 0) {
         uint8_t set;
         for (set = 0; set < 2; set++) {
-          PPM[(set << 3)] = calculateChannel(ppmWork.sbus.ch[set].ch0);
+/*          PPM[(set << 3)] = calculateChannel(ppmWork.sbus.ch[set].ch0);
           PPM[(set << 3) + 1] = calculateChannel(ppmWork.sbus.ch[set].ch1);
           PPM[(set << 3) + 2] = calculateChannel(ppmWork.sbus.ch[set].ch2);
           PPM[(set << 3) + 3] = calculateChannel(ppmWork.sbus.ch[set].ch3);
           PPM[(set << 3) + 4] = calculateChannel(ppmWork.sbus.ch[set].ch4);
           PPM[(set << 3) + 5] = calculateChannel(ppmWork.sbus.ch[set].ch5);
           PPM[(set << 3) + 6] = calculateChannel(ppmWork.sbus.ch[set].ch6);
-          PPM[(set << 3) + 7] = calculateChannel(ppmWork.sbus.ch[set].ch7);
+          PPM[(set << 3) + 7] = calculateChannel(ppmWork.sbus.ch[set].ch7);*/
+
+           PPM[(set<<3)] = ppmWork.sbus.ch[set].ch0 >> 1;
+        PPM[(set<<3)+1] = ppmWork.sbus.ch[set].ch1 >> 1;
+        PPM[(set<<3)+2] = ppmWork.sbus.ch[set].ch2 >> 1;
+        PPM[(set<<3)+3] = ppmWork.sbus.ch[set].ch3 >> 1;
+        PPM[(set<<3)+4] = ppmWork.sbus.ch[set].ch4 >> 1;
+        PPM[(set<<3)+5] = ppmWork.sbus.ch[set].ch5 >> 1;
+        PPM[(set<<3)+6] = ppmWork.sbus.ch[set].ch6 >> 1;
+        PPM[(set<<3)+7] = ppmWork.sbus.ch[set].ch7 >> 1;
         }
 
 #ifdef DEBUG_DUMP_PPM
