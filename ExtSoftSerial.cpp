@@ -48,7 +48,7 @@ http://arduiniana.org.
 // Statics
 //
 ExtSoftSerial *ExtSoftSerial::active_object = 0;
-uint8_t ExtSoftSerial::_receive_buffer[_SS_MAX_RX_BUFF]; 
+uint16_t ExtSoftSerial::_receive_buffer[_SS_MAX_RX_BUFF]; 
 volatile uint8_t ExtSoftSerial::_receive_buffer_tail = 0;
 volatile uint8_t ExtSoftSerial::_receive_buffer_head = 0;
 
@@ -139,7 +139,7 @@ void ExtSoftSerial::recv()
     ::);
 #endif  
 
-  uint8_t d = 0;
+  uint16_t d = 0;
 
   // If RX line is high, then we don't see any start bit
   // so interrupt is probably not for us
@@ -152,7 +152,7 @@ void ExtSoftSerial::recv()
 
 // Wait approximately 1/2 of a bit width to "center" the sample
     tunedDelay(_rx_delay_centering);
-DebugPulse(_DEBUG_PIN2, 1);
+    DebugPulse(_DEBUG_PIN2, 1);
 
     //Load the config values
     uint8_t num_bits = _num_bits;
@@ -165,12 +165,12 @@ DebugPulse(_DEBUG_PIN2, 1);
     for (uint8_t i = 0; i < frame_num_bits; i++)
     {
       tunedDelay(_rx_delay_intrabit);
-	  if (i < num_bits) {
-		d >>= 1;
-		DebugPulse(_DEBUG_PIN2, 1);
-		if (rx_pin_read())
-			d |= 0x80;
-	  }
+      if (i < num_bits) {
+        d >>= 1;
+        DebugPulse(_DEBUG_PIN2, 1);
+        if (rx_pin_read())
+          d |= 0x80;
+      }
     }
 
     if (_inverse_logic)
@@ -381,9 +381,10 @@ void ExtSoftSerial::begin(long speed, uint8_t mode)
     _pcint_maskreg = digitalPinToPCMSK(_receivePin);
     _pcint_maskvalue = _BV(digitalPinToPCMSKbit(_receivePin));
 
-_num_bits = ((mode >> 1) & 0x03) + 5;
+
 uint8_t extra_stop_bits = (mode >> 3) & 0x01;
 	_parity = (mode >> 4) & 0x02;
+  _num_bits = ((mode >> 1) & 0x03) + 5  + ((_parity == 0) ? 0 : 1);
 	_frame_num_bits = _num_bits + ((_parity == 0) ? 0 : 1) + extra_stop_bits;
 
 Serial.print("\nMode:"); Serial.print(mode, HEX);
@@ -419,7 +420,7 @@ void ExtSoftSerial::end()
 
 
 // Read data from buffer
-int ExtSoftSerial::read()
+int16_t ExtSoftSerial::read()
 {
   if (!isListening())
     return -1;
@@ -429,7 +430,7 @@ int ExtSoftSerial::read()
     return -1;
 
   // Read from "head"
-  uint8_t d = _receive_buffer[_receive_buffer_head]; // grab next byte
+  uint16_t d = _receive_buffer[_receive_buffer_head]; // grab next byte
   _receive_buffer_head = (_receive_buffer_head + 1) % _SS_MAX_RX_BUFF;
   return d;
 }

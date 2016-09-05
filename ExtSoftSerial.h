@@ -40,7 +40,7 @@ http://arduiniana.org.
 ******************************************************************************/
 
 #ifndef _SS_MAX_RX_BUFF
-#define _SS_MAX_RX_BUFF 128 // RX buffer size
+#define _SS_MAX_RX_BUFF 64 // RX buffer size
 #endif
 
 #ifndef GCC_VERSION
@@ -73,7 +73,7 @@ uint8_t _num_bits:4;
   uint8_t _frame_num_bits:4;
 
   // static data
-  static uint8_t _receive_buffer[_SS_MAX_RX_BUFF]; 
+  static uint16_t _receive_buffer[_SS_MAX_RX_BUFF]; 
   static volatile uint8_t _receive_buffer_tail;
   static volatile uint8_t _receive_buffer_head;
   static ExtSoftSerial *active_object;
@@ -106,7 +106,7 @@ public:
   void setCentering(uint8_t delay);
 
   virtual size_t write(uint8_t byte);
-  virtual int read();
+  virtual int16_t read();
   virtual int available();
   virtual void flush();
   operator bool() { return true; }

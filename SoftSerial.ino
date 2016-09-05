@@ -20,6 +20,7 @@
 
  */
  #include "ExtSoftSerial.h"
+ #include <util/parity.h>
 
 ExtSoftSerial SoftSerial(3,A0,false);
 
@@ -109,7 +110,7 @@ void loop() {
 
   if (SoftSerial.available()) {
     if (SoftSerial.overflow()) Serial.println("overflow");
-    uint8_t inByte = SoftSerial.read();
+    uint16_t inByte = SoftSerial.read();
     processMULTI(inByte);
     //Serial.write(inByte);
   }
@@ -171,8 +172,16 @@ static uint16_t calculateChannel(uint16_t input) {
   return (uint16_t)value + 12;
 }
 
-static inline void processMULTI(uint8_t c)
+static inline void processMULTI(uint16_t c)
 {
+  bool _paritybit = (c & 0x100) != 0;
+  if (_paritybit != parity_even_bit((int) c))
+  {
+    frameIndex = 0;
+    Serial.println("Parity error");
+    return;
+  }
+
   if (frameIndex == 0) {
     if (c == MULTI_HEADER) {
       frameIndex++;
