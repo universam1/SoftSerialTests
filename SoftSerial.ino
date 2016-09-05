@@ -174,11 +174,12 @@ static uint16_t calculateChannel(uint16_t input) {
 
 static inline void processMULTI(uint16_t c)
 {
-  bool _paritybit = (c & 0x100) != 0;
-  if (_paritybit != parity_even_bit((int) c))
+  //Serial.println((c & 0x100)>>8);
+//  bool _paritybit = (c & 0x100) == 0;
+  if (((c & 0x100)>>8) != parity_even_bit((int) c))
   {
     frameIndex = 0;
-    Serial.println("Parity error");
+    //Serial.println("Parity error");
     return;
   }
 
